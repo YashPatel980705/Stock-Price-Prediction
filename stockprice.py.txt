@@ -1,0 +1,34 @@
+import numpy as np #allow to make arrays
+import matplotlib.pyplot as plt #visualize results on charts 
+import pandas as pd #import dataset and manage easily
+
+# Importing the training set - only importing training set, test set later  on 
+#rnn has no idea of the test set's data, then after training is done, test set will eb important
+dataset_train = pd.read_csv('GOOGL_Stock_Price_Train.csv')
+
+#need to make into numpy arrays because only nump arrays can be input values in keras
+training_set = dataset_train.iloc[:, 1:2].values 
+
+# Feature Scaling
+#2 ways: take obs- min ofstock prices/max of stock prices- min of stock prices
+#using normalization instead of standardisation- look at meaning
+from sklearn.preprocessing import MinMaxScaler
+sc = MinMaxScaler(feature_range = (0, 1))
+training_set_scaled = sc.fit_transform(training_set) #fit (gets min and max on data to apply formula) tranform(compute scale stock prices to each formula)
+
+# Creating a data structure with 60 timesteps and 1 output
+#60 times steps- at each time t and look at 60 previous time steps, then make new prediction 
+# 1 time step leads to overfitting, 20 is still too low
+#60 previous financial days- in 3 months 
+X_train = []
+y_train = []
+for i in range(60, 2168): # upper bound is number of values 
+  X_train.append(training_set_scaled[i-60:i, 0]) #takes 60 previous stock prices from 60 past stock prices
+  y_train.append(training_set_scaled[i, 0]) #contains stock price learned to predict 
+X_train, y_train = np.array(X_train), np.array(y_train) # make into numpy arrays 
+#Need to add dimension to because not only prescition with one stock price but other indicators (like other columns in dataset  or other stocks that may affect this one )
+
+# Reshaping- add dimension in numpy array 
+X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1)) #adds dimension in numpy array
+#currently only have one indicator, with new dimension will have more indicators, be compatible for "input shape" of RNN
+# format according to keras documentation 
